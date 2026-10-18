@@ -146,8 +146,8 @@ export default function App() {
         <EasterEggModal soundFX={soundFX} />
       </main>
 
-      {/* Early-Web Footer & Badges */}
-      <footer className="band border-t border-[color:var(--band-line)]">
+      {/* Footer continues the closing night sky rather than snapping to a new bar */}
+      <footer className="band theme-night border-t border-[color:var(--band-line)]">
         <div className="shell py-10 text-center font-mono text-xs text-[color:var(--band-muted)]">
           <div className="flex flex-wrap items-center justify-center gap-3">
             <span className="sticker text-[color:var(--band-accent)]">Made with 💖 for haX.baby</span>

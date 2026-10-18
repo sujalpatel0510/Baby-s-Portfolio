@@ -77,8 +77,8 @@ export default function ClosingScene({ soundFX }) {
           </div>
         </div>
 
-        {/* The guestbook lives inside the closing scene */}
-        <div className="mt-20 md:mt-28" data-reveal>
+        {/* The dreambook continues the same night, so no hard card break here */}
+        <div className="mt-16 md:mt-24">
           <Guestbook soundFX={soundFX} />
         </div>
       </div>

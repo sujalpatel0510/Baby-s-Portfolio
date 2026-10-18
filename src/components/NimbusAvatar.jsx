@@ -1,7 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { gsap, prefersReducedMotion } from '../lib/anim';
 
-export default function NimbusAvatar({ onPoke, isRaining, isNight }) {
+export default function NimbusAvatar({
+  onPoke,
+  isRaining,
+  isNight,
+  size = 'lg',
+  badge = 'Tap Nimbus to Sprinkle Dream Rain!',
+}) {
   const [isWinking, setIsWinking] = useState(false);
   const [isBlushing, setIsBlushing] = useState(false);
   const cloudRef = useRef(null);
@@ -46,12 +52,22 @@ export default function NimbusAvatar({ onPoke, isRaining, isNight }) {
     if (onPoke) onPoke(e);
   };
 
+  const SIZES = {
+    lg: 'w-72 h-48 md:w-80 md:h-52',
+    md: 'w-56 h-[8.75rem] md:w-64 md:h-40',
+    sm: 'w-40 h-[6.25rem] md:w-48 md:h-[7.5rem]',
+  };
+  const orbit = size === 'sm' ? '-top-4 -left-4 text-lg' : '-top-6 -left-6 text-2xl';
+  const orbitR = size === 'sm' ? 'top-1 -right-5 text-lg' : 'top-2 -right-8 text-2xl';
+
   return (
     <div className="relative flex flex-col items-center justify-center select-none group">
       {/* Floating Sparkle / Star Orbiters */}
-      <div className="absolute -top-6 -left-6 text-2xl animate-float-slow">✨</div>
-      <div className="absolute top-2 -right-8 text-2xl animate-float-reverse">⭐</div>
-      <div className="absolute -bottom-4 right-2 text-xl animate-bounce">🌙</div>
+      <div className={`absolute ${orbit} animate-float-slow`}>✨</div>
+      <div className={`absolute ${orbitR} animate-float-reverse`}>⭐</div>
+      {size !== 'sm' && (
+        <div className="absolute -bottom-4 right-2 text-xl animate-bounce">🌙</div>
+      )}
 
       {/* Main Interactive Cloud Body */}
       <div
@@ -69,7 +85,7 @@ export default function NimbusAvatar({ onPoke, isRaining, isNight }) {
         data-cursor
         data-cursor-state="playful"
         data-cursor-label="Poke Nimbus!"
-        className={`cursor-pointer transition-all duration-300 transform group-hover:scale-105 active:scale-95 relative w-72 h-48 md:w-80 md:h-52 filter drop-shadow-2xl rounded-[50%] ${
+        className={`cursor-pointer transition-all duration-300 transform group-hover:scale-105 active:scale-95 relative ${SIZES[size] || SIZES.lg} filter drop-shadow-2xl rounded-[50%] ${
           isNight ? 'brightness-95' : ''
         }`}
         title="Poke Nimbus to make rainbow rain!"
@@ -190,7 +206,7 @@ export default function NimbusAvatar({ onPoke, isRaining, isNight }) {
       {/* Touch-Friendly Badge */}
       <span className="mt-3 px-3 py-1 bg-berry/10 dark:bg-berry/20 text-berry border border-berry/20 rounded-full text-xs font-mono tracking-wide flex items-center gap-1.5 shadow-sm">
         <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-        Tap Nimbus to Sprinkle Dream Rain!
+        {badge}
       </span>
     </div>
   );
