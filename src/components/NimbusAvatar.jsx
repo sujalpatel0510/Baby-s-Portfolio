@@ -1,13 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { gsap, prefersReducedMotion } from '../lib/anim';
 
 export default function NimbusAvatar({ onPoke, isRaining, isNight }) {
-  const [pupilOffset, setPupilOffset] = useState({ x: 0, y: 0 });
   const [isWinking, setIsWinking] = useState(false);
   const [isBlushing, setIsBlushing] = useState(false);
   const cloudRef = useRef(null);
+  const pupilLRef = useRef(null);
+  const pupilRRef = useRef(null);
+  const catchLRef = useRef(null);
+  const catchRRef = useRef(null);
 
-  // Eye-tracking mechanics
+  // Eye-tracking: write transforms directly (never React state per pointer move)
   useEffect(() => {
+    if (prefersReducedMotion()) return;
     const handleMove = (e) => {
       if (!cloudRef.current) return;
       const rect = cloudRef.current.getBoundingClientRect();
@@ -19,13 +24,17 @@ export default function NimbusAvatar({ onPoke, isRaining, isNight }) {
       const angle = Math.atan2(deltaY, deltaX);
       const dist = Math.min(6, Math.hypot(deltaX, deltaY) / 35);
 
-      setPupilOffset({
-        x: Math.cos(angle) * dist,
-        y: Math.sin(angle) * dist,
-      });
+      const x = Math.cos(angle) * dist;
+      const y = Math.sin(angle) * dist;
+
+      // Direct DOM writes — no React render per pointer move
+      if (pupilLRef.current) gsap.set(pupilLRef.current, { x, y });
+      if (pupilRRef.current) gsap.set(pupilRRef.current, { x, y });
+      if (catchLRef.current) gsap.set(catchLRef.current, { x: x + 2, y: y - 2 });
+      if (catchRRef.current) gsap.set(catchRRef.current, { x: x + 2, y: y - 2 });
     };
 
-    window.addEventListener('mousemove', handleMove);
+    window.addEventListener('mousemove', handleMove, { passive: true });
     return () => window.removeEventListener('mousemove', handleMove);
   }, []);
 
@@ -48,7 +57,19 @@ export default function NimbusAvatar({ onPoke, isRaining, isNight }) {
       <div
         ref={cloudRef}
         onClick={handleClick}
-        className={`cursor-pointer transition-all duration-300 transform group-hover:scale-105 active:scale-95 relative w-72 h-48 md:w-80 md:h-52 filter drop-shadow-2xl ${
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleClick(e);
+          }
+        }}
+        role="button"
+        tabIndex={0}
+        aria-label="Poke Nimbus to sprinkle dream rain"
+        data-cursor
+        data-cursor-state="playful"
+        data-cursor-label="Poke Nimbus!"
+        className={`cursor-pointer transition-all duration-300 transform group-hover:scale-105 active:scale-95 relative w-72 h-48 md:w-80 md:h-52 filter drop-shadow-2xl rounded-[50%] ${
           isNight ? 'brightness-95' : ''
         }`}
         title="Poke Nimbus to make rainbow rain!"
@@ -116,15 +137,9 @@ export default function NimbusAvatar({ onPoke, isRaining, isNight }) {
           {/* Left Eye */}
           <g transform="translate(118, 110)">
             <circle cx="0" cy="0" r="10" fill="#2a1e24" />
-            <circle
-              cx={pupilOffset.x}
-              cy={pupilOffset.y}
-              r="4.5"
-              fill="#ffeaa7"
-              className="transition-transform duration-75"
-            />
+            <circle ref={pupilLRef} cx="0" cy="0" r="4.5" fill="#ffeaa7" />
             {/* Catchlight */}
-            <circle cx={pupilOffset.x + 2} cy={pupilOffset.y - 2} r="1.5" fill="#ffffff" />
+            <circle ref={catchLRef} cx="2" cy="-2" r="1.5" fill="#ffffff" />
           </g>
 
           {/* Right Eye (winks when clicked!) */}
@@ -139,15 +154,9 @@ export default function NimbusAvatar({ onPoke, isRaining, isNight }) {
           ) : (
             <g transform="translate(202, 110)">
               <circle cx="0" cy="0" r="10" fill="#2a1e24" />
-              <circle
-                cx={pupilOffset.x}
-                cy={pupilOffset.y}
-                r="4.5"
-                fill="#ffeaa7"
-                className="transition-transform duration-75"
-              />
+              <circle ref={pupilRRef} cx="0" cy="0" r="4.5" fill="#ffeaa7" />
               {/* Catchlight */}
-              <circle cx={pupilOffset.x + 2} cy={pupilOffset.y - 2} r="1.5" fill="#ffffff" />
+              <circle ref={catchRRef} cx="2" cy="-2" r="1.5" fill="#ffffff" />
             </g>
           )}
 

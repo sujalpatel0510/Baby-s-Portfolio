@@ -48,7 +48,7 @@ export default function LanternGallery({ soundFX }) {
   };
 
   return (
-    <div className="bg-white/90 dark:bg-midnight-card/90 border-2 border-berry/20 dark:border-midnight-border rounded-3xl p-6 shadow-xl backdrop-blur-md transition-all hover:border-berry/40 flex flex-col justify-between">
+    <div className="h-full bg-white/90 dark:bg-midnight-card/90 border-2 border-berry/20 dark:border-midnight-border rounded-3xl p-6 shadow-xl backdrop-blur-md transition-all hover:border-berry/40 flex flex-col justify-between">
       <div>
         <div className="flex items-center justify-between mb-4">
           <span className="px-3 py-1 bg-amber-500/10 text-amber-700 dark:text-amber-400 font-mono text-xs rounded-full uppercase tracking-wider flex items-center gap-1.5 font-semibold">

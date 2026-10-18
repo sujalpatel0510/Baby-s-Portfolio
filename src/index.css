@@ -3,12 +3,78 @@
 @tailwind utilities;
 
 @layer base {
+  /* ===== Nimbus Design Tokens ===== */
+  :root {
+    --nimbus-bg: #fff8f1;
+    --nimbus-text: #5c4033;
+    --nimbus-accent: #a34063;
+    --nimbus-accent-dark: #6e2741;
+    --nimbus-card: rgba(255, 255, 255, 0.88);
+    --nimbus-card-border: rgba(163, 64, 99, 0.2);
+    --nimbus-shadow: 0 20px 40px -12px rgba(92, 64, 51, 0.12);
+    --nimbus-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --nimbus-ease-out: cubic-bezier(0.25, 1, 0.5, 1);
+    --nimbus-cursor-pointer: #a34063;
+    --nimbus-cursor-pointer-inner: #fff8f1;
+    --nimbus-cursor-follower-bg: rgba(163, 64, 99, 0.12);
+    --nimbus-cursor-follower-border: rgba(163, 64, 99, 0.45);
+    --nimbus-cursor-star: #ffeaa7;
+  }
+
+  .dark {
+    --nimbus-bg: #060810;
+    --nimbus-text: #fff8f1;
+    --nimbus-accent: #d46a8c;
+    --nimbus-accent-dark: #a34063;
+    --nimbus-card: rgba(18, 23, 43, 0.9);
+    --nimbus-card-border: rgba(212, 106, 140, 0.25);
+    --nimbus-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.5);
+    --nimbus-cursor-pointer: #d46a8c;
+    --nimbus-cursor-pointer-inner: #0a0d18;
+    --nimbus-cursor-follower-bg: rgba(212, 106, 140, 0.15);
+    --nimbus-cursor-follower-border: rgba(212, 106, 140, 0.55);
+    --nimbus-cursor-star: #ffd1a4;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    background-color: var(--nimbus-bg);
+    transition: background-color 0.5s ease;
+  }
+
   body {
     @apply transition-colors duration-500 selection:bg-berry selection:text-white font-bubbly;
   }
+
+  /* Visible, character-toned focus ring for keyboard users */
+  :focus-visible {
+    outline: 3px solid var(--nimbus-accent);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  /* Skip link for keyboard navigation */
+  .skip-link {
+    position: fixed;
+    top: -100px;
+    left: 12px;
+    z-index: 10010;
+    padding: 10px 16px;
+    border-radius: 12px;
+    background: var(--nimbus-accent);
+    color: #fff;
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    transition: top 0.25s var(--nimbus-ease-out);
+  }
+
+  .skip-link:focus-visible {
+    top: 12px;
+  }
 }
 
-/* Custom retro scrollbar */
+/* ===== Custom Retro Scrollbar ===== */
 ::-webkit-scrollbar {
   width: 10px;
 }
@@ -26,10 +92,10 @@
   background: #802e4c;
 }
 
-/* Retro CRT scanline effect (optional toggle / chaos mode) */
+/* ===== Retro CRT Scanline Effect (optional toggle / chaos mode) ===== */
 .scanlines {
   background: linear-gradient(
-    rgba(18, 16, 16, 0) 50%, 
+    rgba(18, 16, 16, 0) 50%,
     rgba(0, 0, 0, 0.15) 50%
   ), linear-gradient(
     90deg,
@@ -39,4 +105,170 @@
   );
   background-size: 100% 3px, 3px 100%;
   pointer-events: none;
+}
+
+/* ===== Custom Character Cursor ===== */
+@layer utilities {
+  .custom-cursor-root {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 10030;
+  }
+
+  .custom-cursor__pointer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    z-index: 10032;
+    will-change: transform;
+  }
+
+  .custom-cursor__follower {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 52px;
+    height: 52px;
+    z-index: 10031;
+    will-change: transform;
+  }
+
+  .custom-cursor__follower-inner {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 1.5px solid var(--nimbus-cursor-follower-border);
+    background: var(--nimbus-cursor-follower-bg);
+    display: grid;
+    place-items: center;
+    position: relative;
+    transition:
+      transform 0.35s var(--nimbus-ease-spring),
+      background-color 0.35s ease,
+      border-color 0.35s ease,
+      border-radius 0.35s var(--nimbus-ease-spring);
+    transform: scale(1);
+  }
+
+  [data-cursor-state='hover'] .custom-cursor__follower-inner {
+    transform: scale(1.35);
+    background: var(--nimbus-cursor-follower-bg);
+  }
+
+  [data-cursor-state='attract'] .custom-cursor__follower-inner {
+    transform: scale(1.55);
+    border-color: var(--nimbus-accent);
+    background: rgba(163, 64, 99, 0.22);
+  }
+
+  .dark[data-cursor-state='attract'] .custom-cursor__follower-inner,
+  [data-cursor-state='attract'] .custom-cursor__follower-inner {
+    background: rgba(163, 64, 99, 0.22);
+  }
+
+  [data-cursor-state='playful'] .custom-cursor__follower-inner {
+    transform: scale(1.4) rotate(8deg);
+    border-style: dashed;
+    border-color: var(--nimbus-cursor-star);
+  }
+
+  .custom-cursor__label {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translate(-50%, -6px) scale(0.6);
+    transform-origin: center bottom;
+    font-size: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    background: var(--nimbus-accent);
+    color: #fff;
+    padding: 4px 9px;
+    border-radius: 999px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      opacity 0.25s ease,
+      transform 0.3s var(--nimbus-ease-spring);
+  }
+
+  [data-cursor-label='1'] .custom-cursor__label {
+    opacity: 1;
+    transform: translate(-50%, -10px) scale(1);
+  }
+
+  .cursor-particle {
+    position: fixed;
+    top: 0;
+    left: 0;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 10028;
+    will-change: transform, opacity;
+  }
+
+  /* Replace the native cursor ONLY where the custom cursor is active (fine pointers) */
+  @media (pointer: fine) {
+    .has-custom-cursor,
+    .has-custom-cursor * {
+      cursor: none !important;
+    }
+  }
+
+  /* ===== Page-load Intro Overlay ===== */
+  .intro-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10020;
+    background: var(--nimbus-bg);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+  }
+
+  /* Tactile sticker-button micro-interaction base */
+  .tactile {
+    transition: transform 0.25s var(--nimbus-ease-spring), box-shadow 0.25s ease;
+  }
+
+  .tactile:hover {
+    transform: translateY(-2px) scale(1.02);
+  }
+
+  .tactile:active {
+    transform: translateY(1px) scale(0.96);
+  }
+}
+
+/* ===== Reduced Motion: respect user preference ===== */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .animate-float-slow,
+  .animate-float-reverse,
+  .animate-bounce,
+  .animate-ping,
+  .animate-pulse,
+  .animate-spin-slow,
+  .animate-pulse-glow,
+  [class*='animate-'] {
+    animation: none !important;
+  }
+
+  .tactile,
+  .tactile:hover,
+  .tactile:active {
+    transform: none;
+  }
 }

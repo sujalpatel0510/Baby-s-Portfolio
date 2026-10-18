@@ -59,12 +59,12 @@ export default function Guestbook({ soundFX }) {
   };
 
   return (
-    <section id="guestbook" className="py-12 px-4 max-w-4xl mx-auto">
-      <div className="bg-white/95 dark:bg-midnight-card/95 border-2 border-berry/20 dark:border-midnight-border rounded-3xl p-6 md:p-10 shadow-xl backdrop-blur-md">
+    <section id="guestbook" className="py-16 md:py-24 px-4 sm:px-6">
+      <div className="max-w-4xl mx-auto bg-white/95 dark:bg-midnight-card/95 border-2 border-berry/20 dark:border-midnight-border rounded-3xl p-6 md:p-10 shadow-xl backdrop-blur-md" data-reveal>
         <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
           <div>
             <span className="px-3 py-1 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-mono text-xs rounded-full uppercase tracking-wider font-semibold flex items-center gap-1.5 w-fit">
-              <MessageSquare size={14} /> Side Quest (+2 pts)
+              <MessageSquare size={14} aria-hidden="true" /> Side Quest (+2 pts)
             </span>
             <h3 className="text-2xl md:text-3xl font-serif font-bold text-earth dark:text-cream-50 mt-2">
               The Slumber Crib Guestbook
@@ -97,8 +97,8 @@ export default function Guestbook({ soundFX }) {
                     setSelectedSticker(s);
                     soundFX.playClick();
                   }}
-                  className={`text-base p-1 rounded-lg transition-transform ${
-                    selectedSticker === s ? 'scale-125 bg-berry/20 ring-1 ring-berry' : 'hover:scale-110 opacity-70'
+                  className={`text-base p-2 rounded-lg transition-transform tactile min-w-[36px] min-h-[36px] flex items-center justify-center ${
+                    selectedSticker === s ? 'scale-125 bg-berry/20 ring-1 ring-berry' : 'opacity-70'
                   }`}
                 >
                   {s}
@@ -118,7 +118,7 @@ export default function Guestbook({ soundFX }) {
 
           <button
             type="submit"
-            className="w-full sm:w-auto px-6 py-2 bg-berry hover:bg-berry-dark text-white rounded-xl text-xs font-bubbly font-bold flex items-center justify-center gap-2 shadow-sm transition-all"
+            className="w-full sm:w-auto px-6 py-3 bg-berry hover:bg-berry-dark text-white rounded-xl text-xs font-bubbly font-bold flex items-center justify-center gap-2 shadow-sm transition-all tactile"
           >
             <Send size={14} /> Pin Bedtime Note
           </button>

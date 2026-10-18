@@ -3,13 +3,23 @@ import React, { useEffect, useRef } from 'react';
 export default function SparkleTrail({ active = true }) {
   const canvasRef = useRef(null);
 
+  const disabled =
+    typeof window !== 'undefined' &&
+    (window.matchMedia('(pointer: coarse)').matches ||
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
   useEffect(() => {
     if (!active) return;
+    // No trail on touch devices or reduced motion
+    if (window.matchMedia('(pointer: coarse)').matches) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     let particles = [];
+    const MAX_PARTICLES = 160;
     let animationFrame;
+    let lastSpawn = 0;
 
     const resize = () => {
       canvas.width = window.innerWidth;
@@ -21,6 +31,9 @@ export default function SparkleTrail({ active = true }) {
     const colors = ['#ff9ebb', '#ffd1a4', '#ffeaa7', '#a8e6cf', '#a1c4fd', '#c2b6f7', '#a34063'];
 
     const handleMouseMove = (e) => {
+      const now = performance.now();
+      if (now - lastSpawn < 40) return;
+      lastSpawn = now;
       for (let i = 0; i < 2; i++) {
         particles.push({
           x: e.clientX + (Math.random() - 0.5) * 16,
@@ -33,8 +46,12 @@ export default function SparkleTrail({ active = true }) {
           rotation: Math.random() * Math.PI,
         });
       }
+      // Hard cap: never grow unbounded
+      if (particles.length > MAX_PARTICLES) {
+        particles.splice(0, particles.length - MAX_PARTICLES);
+      }
     };
-    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
 
     const render = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -77,7 +94,7 @@ export default function SparkleTrail({ active = true }) {
     };
   }, [active]);
 
-  if (!active) return null;
+  if (!active || disabled) return null;
 
   return (
     <canvas
