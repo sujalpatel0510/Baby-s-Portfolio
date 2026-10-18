@@ -9,6 +9,8 @@
     --nimbus-text: #5c4033;
     --nimbus-accent: #a34063;
     --nimbus-accent-dark: #6e2741;
+    --nimbus-gold: #e8b64c;
+    --nimbus-night: #0b0a14;
     --nimbus-card: rgba(255, 255, 255, 0.88);
     --nimbus-card-border: rgba(163, 64, 99, 0.2);
     --nimbus-shadow: 0 20px 40px -12px rgba(92, 64, 51, 0.12);
@@ -19,6 +21,16 @@
     --nimbus-cursor-follower-bg: rgba(163, 64, 99, 0.12);
     --nimbus-cursor-follower-border: rgba(163, 64, 99, 0.45);
     --nimbus-cursor-star: #ffeaa7;
+
+    /* Band tokens: every section themes itself locally (see .band / .theme-night) */
+    --band-bg: #fff8f1;
+    --band-fg: #46312a;
+    --band-muted: #7d6558;
+    --band-line: rgba(163, 64, 99, 0.16);
+    --band-surface: rgba(255, 255, 255, 0.86);
+    --band-accent: #a34063;
+    --band-accent-soft: rgba(163, 64, 99, 0.1);
+    --band-glow: rgba(194, 182, 247, 0.35);
   }
 
   .dark {
@@ -34,16 +46,46 @@
     --nimbus-cursor-follower-bg: rgba(212, 106, 140, 0.15);
     --nimbus-cursor-follower-border: rgba(212, 106, 140, 0.55);
     --nimbus-cursor-star: #ffd1a4;
+
+    --band-bg: #060810;
+    --band-fg: #fff8f1;
+    --band-muted: #b7aecb;
+    --band-line: rgba(255, 248, 241, 0.14);
+    --band-surface: rgba(18, 23, 43, 0.86);
+    --band-accent: #d46a8c;
+    --band-accent-soft: rgba(212, 106, 140, 0.14);
+    --band-glow: rgba(194, 182, 247, 0.22);
+  }
+
+  /* A band that stays night no matter the site mood (art direction) */
+  .theme-night {
+    --band-bg: #0b0a14;
+    --band-fg: #fff8f1;
+    --band-muted: #b9b0d8;
+    --band-line: rgba(255, 248, 241, 0.14);
+    --band-surface: rgba(20, 18, 40, 0.6);
+    --band-accent: #e8a0bd;
+    --band-accent-soft: rgba(232, 160, 189, 0.14);
+    --band-glow: rgba(143, 157, 255, 0.3);
   }
 
   html {
     scroll-behavior: smooth;
     background-color: var(--nimbus-bg);
     transition: background-color 0.5s ease;
+    /* Reserve the scrollbar gutter so locking body scroll during the intro
+       never shifts layout (keeps ScrollTrigger positions accurate). */
+    scrollbar-gutter: stable;
   }
 
   body {
     @apply transition-colors duration-500 selection:bg-berry selection:text-white font-bubbly;
+  }
+
+  /* Anchor targets land below the sticky header instead of underneath it */
+  section[id],
+  main[id] {
+    scroll-margin-top: calc(var(--nimbus-header-h, 64px) + 16px);
   }
 
   /* Visible, character-toned focus ring for keyboard users */
@@ -168,11 +210,6 @@
     background: rgba(163, 64, 99, 0.22);
   }
 
-  .dark[data-cursor-state='attract'] .custom-cursor__follower-inner,
-  [data-cursor-state='attract'] .custom-cursor__follower-inner {
-    background: rgba(163, 64, 99, 0.22);
-  }
-
   [data-cursor-state='playful'] .custom-cursor__follower-inner {
     transform: scale(1.4) rotate(8deg);
     border-style: dashed;
@@ -246,6 +283,106 @@
 
   .tactile:active {
     transform: translateY(1px) scale(0.96);
+  }
+
+  /* ===== Layout & Art-Direction Utilities ===== */
+  .shell {
+    width: 100%;
+    max-width: 1680px;
+    margin-inline: auto;
+    padding-inline: 1.25rem;
+  }
+
+  @media (min-width: 640px) {
+    .shell { padding-inline: 2rem; }
+  }
+
+  @media (min-width: 1024px) {
+    .shell { padding-inline: 3.5rem; }
+  }
+
+  .band {
+    position: relative;
+    width: 100%;
+    background-color: var(--band-bg);
+    color: var(--band-fg);
+    transition: background-color 0.5s ease, color 0.5s ease;
+  }
+
+  .display {
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 0.98;
+  }
+
+  .ins-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+  }
+
+  .tick-rule {
+    height: 1px;
+    background-image: repeating-linear-gradient(
+      90deg,
+      var(--band-line) 0 1px,
+      transparent 1px 13px
+    );
+  }
+
+  /* Collage sticker chip with a hand-taped feel */
+  .sticker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.7rem;
+    border-radius: 0.6rem;
+    background: var(--band-surface);
+    border: 1px solid var(--band-line);
+    box-shadow: 0 10px 24px -14px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(6px);
+  }
+
+  /* Film-grain layer for the whole observatory */
+  .grain-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 10005;
+    pointer-events: none;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 160px 160px;
+  }
+
+  .dark .grain-layer {
+    opacity: 0.06;
+    mix-blend-mode: screen;
+  }
+
+  /* Reduced-motion / no-JS fallback: the pinned story becomes a plain stack */
+  .story-static .story-frame {
+    height: auto;
+    min-height: 100svh;
+    padding-block: 4rem;
+  }
+
+  .story-static .story-slide {
+    position: relative;
+    inset: auto;
+    opacity: 1;
+    transform: none;
+    max-width: 42rem;
+    margin-inline: auto;
+    padding-block: 1.5rem;
+  }
+
+  .story-static [data-story-avatar],
+  .story-static [data-story-rail],
+  .story-static [data-story-progress] {
+    display: none;
   }
 }
 

@@ -9,8 +9,11 @@ export default function EasterEggModal({ soundFX }) {
   const dialogRef = useRef(null);
   const closeBtnRef = useRef(null);
   const openBtnRef = useRef(null);
+  const openGuardRef = useRef(false);
 
   const handleOpen = () => {
+    if (openGuardRef.current) return;
+    openGuardRef.current = true;
     soundFX.playSparkle();
     soundFX.playChime(880);
     setIsOpen(true);
@@ -26,18 +29,26 @@ export default function EasterEggModal({ soundFX }) {
 
   const handleClose = useCallback(() => {
     setIsOpen(false);
+    openGuardRef.current = false;
     soundFX.playClick();
     // Return focus to the trigger so keyboard users stay oriented
     openBtnRef.current?.focus();
   }, [soundFX]);
 
+  // Latest close handler without re-running the focus/Escape effect
+  // (soundFX identity changes every App render — never key effects on it)
+  const handleCloseRef = useRef(handleClose);
+  useEffect(() => {
+    handleCloseRef.current = handleClose;
+  }, [handleClose]);
+
   // Focus the dialog on open, Escape to close, light focus trap
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) return undefined;
     closeBtnRef.current?.focus();
     const onKey = (e) => {
       if (e.key === 'Escape') {
-        handleClose();
+        handleCloseRef.current();
         return;
       }
       if (e.key === 'Tab' && dialogRef.current) {
@@ -58,7 +69,7 @@ export default function EasterEggModal({ soundFX }) {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [isOpen, handleClose]);
+  }, [isOpen]);
 
   // Polished, restrained entrance for the reveal
   useGSAP(

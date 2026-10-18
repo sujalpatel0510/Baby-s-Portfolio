@@ -3,6 +3,10 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger);
 
+// Mobile browsers fire resize on toolbar show/hide — refreshing there
+// would flicker reveal animations mid-scroll, so ignore those resizes.
+ScrollTrigger.config({ ignoreMobileResize: true });
+
 export const prefersReducedMotion = () =>
   typeof window !== 'undefined' &&
   window.matchMedia('(prefers-reduced-motion: reduce)').matches;

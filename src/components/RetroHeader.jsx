@@ -2,11 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useGSAP } from '@gsap/react';
 import { Volume2, VolumeX, Moon, Sun, Sparkles } from 'lucide-react';
 import { ScrollTrigger } from '../lib/anim';
+import CountUp from './reactbits/CountUp';
 
 const NAV_LINKS = [
   { id: 'hero', label: 'Home' },
-  { id: 'projects', label: 'Projects' },
-  { id: 'origin-story', label: 'Story' },
+  { id: 'character', label: 'The File' },
+  { id: 'projects', label: 'Workshop' },
+  { id: 'story', label: 'Story' },
   { id: 'guestbook', label: 'Guestbook' },
 ];
 
@@ -22,21 +24,46 @@ export default function RetroHeader({ isNight, setIsNight, soundFX, sparkTrailAc
     localStorage.setItem('nimbus_visitor_count', count.toString());
   }, []);
 
-  // Active section indicator (desktop nav + a11y aria-current)
+  // Publish header height as a CSS var (hero sizing + anchor scroll-margin
+  // both depend on it, and the header grows to two rows on mobile)
+  useEffect(() => {
+    const el = headerRef.current;
+    if (!el) return undefined;
+    const set = () =>
+      document.documentElement.style.setProperty('--nimbus-header-h', `${el.offsetHeight}px`);
+    set();
+    const ro = new ResizeObserver(set);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  // Active section indicator: one deterministic pass that picks the section
+  // whose top has most recently crossed the header line. Per-section
+  // onToggle triggers can leave a stale highlight after a jump (and overlap
+  // badly with the pinned story), so we resolve it from live rects instead.
   useGSAP(
     () => {
-      const nodes = NAV_LINKS.map((l) => document.getElementById(l.id)).filter(Boolean);
-      const triggers = nodes.map((section) =>
-        ScrollTrigger.create({
-          trigger: section,
-          start: 'top 45%',
-          end: 'bottom 45%',
-          onToggle: (self) => {
-            if (self.isActive) setActiveSection(section.id);
-          },
-        }),
-      );
-      return () => triggers.forEach((t) => t.kill());
+      const resolve = () => {
+        const headerH = parseFloat(
+          getComputedStyle(document.documentElement).getPropertyValue('--nimbus-header-h'),
+        ) || 64;
+        const line = headerH + 48;
+        let current = NAV_LINKS[0].id;
+        for (const link of NAV_LINKS) {
+          const el = document.getElementById(link.id);
+          if (el && el.getBoundingClientRect().top <= line) current = link.id;
+        }
+        setActiveSection((prev) => (prev === current ? prev : current));
+      };
+      const st = ScrollTrigger.create({
+        trigger: document.body,
+        start: 'top top',
+        end: 'bottom bottom',
+        onUpdate: resolve,
+        onRefresh: resolve,
+      });
+      resolve();
+      return () => st.kill();
     },
     { scope: headerRef },
   );
@@ -73,9 +100,9 @@ export default function RetroHeader({ isNight, setIsNight, soundFX, sparkTrailAc
           </span>
         </a>
 
-        {/* Section Navigation (desktop) with active indicator */}
+        {/* Section Navigation — full-width second row on mobile, inline on md+ */}
         <nav
-          className="hidden md:flex items-center gap-1 mx-auto"
+          className="order-3 w-full md:order-none md:w-auto md:mx-auto mt-1 md:mt-0 flex items-center justify-center gap-0.5 md:gap-1"
           aria-label="Section navigation"
         >
           {NAV_LINKS.map((link) => {
@@ -86,7 +113,7 @@ export default function RetroHeader({ isNight, setIsNight, soundFX, sparkTrailAc
                 href={`#${link.id}`}
                 onClick={() => soundFX.playClick()}
                 aria-current={isActive ? 'true' : undefined}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-mono font-semibold transition-all tactile ${
+                className={`px-3.5 py-2 rounded-full text-xs font-mono font-semibold transition-all tactile ${
                   isActive
                     ? 'bg-berry text-white shadow-md shadow-berry/25'
                     : 'text-stone-500 dark:text-stone-400 hover:text-berry hover:bg-berry/10'
@@ -101,7 +128,17 @@ export default function RetroHeader({ isNight, setIsNight, soundFX, sparkTrailAc
         {/* Vintage Visitor Odometer Side Quest (+1 pt) */}
         <div className="hidden lg:flex items-center gap-2 bg-stone-900 text-amber-400 px-3 py-1 rounded-lg font-mono text-xs border border-stone-800 shadow-inner">
           <span className="text-[10px] text-stone-400 uppercase tracking-widest">Visitors</span>
-          <span className="font-bold tracking-widest">{hits.toString().padStart(6, '0')}</span>
+          <span className="font-bold tracking-widest" aria-label={`${hits} visitors`}>
+            <CountUp
+              to={hits}
+              from={hits - 1}
+              trigger="load"
+              duration={1.6}
+              mode="roll"
+              easing="spring"
+              replayOnHover
+            />
+          </span>
         </div>
 
         {/* Action Toggles */}
@@ -113,7 +150,7 @@ export default function RetroHeader({ isNight, setIsNight, soundFX, sparkTrailAc
               soundFX.playClick();
             }}
             aria-pressed={sparkTrailActive}
-            className={`px-2.5 py-1.5 rounded-xl border text-xs font-mono flex items-center gap-1.5 transition-all tactile ${
+            className={`px-2.5 py-2 rounded-xl border text-xs font-mono flex items-center gap-1.5 transition-all tactile ${
               sparkTrailActive
                 ? 'bg-amber-400/20 border-amber-500 text-amber-700 dark:text-amber-300'
                 : 'border-stone-300 dark:border-stone-700 opacity-60 hover:opacity-100'
@@ -129,7 +166,7 @@ export default function RetroHeader({ isNight, setIsNight, soundFX, sparkTrailAc
             onClick={toggleTheme}
             aria-label={isNight ? 'Switch to Day' : 'Switch to Night'}
             aria-pressed={isNight}
-            className="p-2 rounded-xl border border-berry/30 bg-berry/5 hover:bg-berry/15 text-berry transition-all tactile"
+            className="p-2.5 rounded-xl border border-berry/30 bg-berry/5 hover:bg-berry/15 text-berry transition-all tactile"
             title="Day / Night Sleep Mode"
           >
             {isNight ? <Sun size={17} aria-hidden="true" /> : <Moon size={17} aria-hidden="true" />}
@@ -140,7 +177,7 @@ export default function RetroHeader({ isNight, setIsNight, soundFX, sparkTrailAc
             onClick={soundFX.toggleMute}
             aria-label={soundFX.isMuted ? 'Unmute sounds' : 'Mute sounds'}
             aria-pressed={soundFX.isMuted}
-            className={`p-2 rounded-xl border transition-all tactile ${
+            className={`p-2.5 rounded-xl border transition-all tactile ${
               soundFX.isMuted
                 ? 'border-red-400/50 bg-red-500/10 text-red-500'
                 : 'border-berry/30 bg-berry/5 hover:bg-berry/15 text-berry'

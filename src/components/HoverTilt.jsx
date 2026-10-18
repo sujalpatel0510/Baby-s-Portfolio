@@ -46,7 +46,6 @@ export default function HoverTilt({ children, label, tilt = 7, className = '' })
         data-cursor-state="playful"
         data-cursor-label={label}
         className="h-full will-change-transform"
-        style={{ transformStyle: 'preserve-3d' }}
       >
         {children}
       </div>
