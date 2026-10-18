@@ -16,11 +16,12 @@
     --nimbus-shadow: 0 20px 40px -12px rgba(92, 64, 51, 0.12);
     --nimbus-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
     --nimbus-ease-out: cubic-bezier(0.25, 1, 0.5, 1);
-    --nimbus-cursor-pointer: #a34063;
-    --nimbus-cursor-pointer-inner: #fff8f1;
-    --nimbus-cursor-follower-bg: rgba(163, 64, 99, 0.12);
-    --nimbus-cursor-follower-border: rgba(163, 64, 99, 0.45);
-    --nimbus-cursor-star: #ffeaa7;
+
+    /* Stardust cursor — warm champagne core, soft blush glow */
+    --stardust-core: #e8b64c;
+    --stardust-core-2: #f7dfa5;
+    --stardust-glow: rgba(232, 160, 189, 0.55);
+    --stardust-edge: rgba(110, 39, 65, 0.45);
 
     /* Band tokens: every section themes itself locally (see .band / .theme-night) */
     --band-bg: #fff8f1;
@@ -41,11 +42,12 @@
     --nimbus-card: rgba(18, 23, 43, 0.9);
     --nimbus-card-border: rgba(212, 106, 140, 0.25);
     --nimbus-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.5);
-    --nimbus-cursor-pointer: #d46a8c;
-    --nimbus-cursor-pointer-inner: #0a0d18;
-    --nimbus-cursor-follower-bg: rgba(212, 106, 140, 0.15);
-    --nimbus-cursor-follower-border: rgba(212, 106, 140, 0.55);
-    --nimbus-cursor-star: #ffd1a4;
+
+    /* Stardust cursor — brighter core + stronger blush glow on night skies */
+    --stardust-core: #ffeaa7;
+    --stardust-core-2: #fff8f1;
+    --stardust-glow: rgba(212, 106, 140, 0.6);
+    --stardust-edge: rgba(255, 248, 241, 0.3);
 
     --band-bg: #060810;
     --band-fg: #fff8f1;
@@ -149,9 +151,10 @@
   pointer-events: none;
 }
 
-/* ===== Custom Character Cursor ===== */
+/* ===== Stardust Cursor ===== */
 @layer utilities {
-  .custom-cursor-root {
+  /* Full-viewport, decorative only — never intercepts clicks */
+  .stardust-root {
     position: fixed;
     inset: 0;
     width: 100%;
@@ -160,97 +163,179 @@
     z-index: 10030;
   }
 
-  .custom-cursor__pointer {
+  /* Positioned by the rAF loop (translate x/y); kept apart from the scaled
+     inner so hover scaling never fights the pointer tracking. */
+  .stardust-star {
     position: fixed;
     top: 0;
     left: 0;
-    width: 28px;
-    height: 28px;
-    display: grid;
-    place-items: center;
-    z-index: 10032;
+    width: 30px;
+    height: 30px;
+    opacity: 0;
     will-change: transform;
+    transition: opacity 0.28s ease;
   }
 
-  .custom-cursor__follower {
+  .stardust-root.is-visible .stardust-star {
+    opacity: 1;
+  }
+
+  /* Ambient radial glow that drifts behind the page content (z-index: 1).
+     Content shells sit at z-10, so the glow only ever lights the background,
+     never text or cards. Tone adapts to the section underneath. */
+  .stardust-glow {
     position: fixed;
     top: 0;
     left: 0;
-    width: 52px;
-    height: 52px;
-    z-index: 10031;
+    width: 480px;
+    height: 480px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0;
     will-change: transform;
+    transition: opacity 0.4s ease;
+    background: radial-gradient(
+      circle at center,
+      rgba(255, 170, 195, 0.16) 0%,
+      rgba(255, 214, 150, 0.1) 30%,
+      rgba(255, 214, 150, 0) 68%
+    );
   }
 
-  .custom-cursor__follower-inner {
+  .stardust-glow[data-tone='dark'] {
+    background: radial-gradient(
+      circle at center,
+      rgba(150, 160, 255, 0.2) 0%,
+      rgba(232, 160, 189, 0.13) 28%,
+      rgba(232, 182, 76, 0.06) 52%,
+      rgba(232, 182, 76, 0) 72%
+    );
+  }
+
+  .stardust-glow.is-visible {
+    opacity: 1;
+  }
+
+  .stardust-inner {
+    position: relative;
     width: 100%;
     height: 100%;
-    border-radius: 50%;
-    border: 1.5px solid var(--nimbus-cursor-follower-border);
-    background: var(--nimbus-cursor-follower-bg);
     display: grid;
     place-items: center;
-    position: relative;
-    transition:
-      transform 0.35s var(--nimbus-ease-spring),
-      background-color 0.35s ease,
-      border-color 0.35s ease,
-      border-radius 0.35s var(--nimbus-ease-spring);
     transform: scale(1);
+    transition: transform 0.28s var(--nimbus-ease-spring), opacity 0.2s ease;
   }
 
-  [data-cursor-state='hover'] .custom-cursor__follower-inner {
-    transform: scale(1.35);
-    background: var(--nimbus-cursor-follower-bg);
+  /* Four-point star; layered drop-shadows make the soft blush-pink glow */
+  .stardust-glyph {
+    width: 100%;
+    height: 100%;
+    color: var(--stardust-core);
+    filter:
+      drop-shadow(0 0 3px var(--stardust-glow))
+      drop-shadow(0 0 7px var(--stardust-glow));
+    transition: color 0.25s ease, filter 0.25s ease;
   }
 
-  [data-cursor-state='attract'] .custom-cursor__follower-inner {
-    transform: scale(1.55);
-    border-color: var(--nimbus-accent);
-    background: rgba(163, 64, 99, 0.22);
+  .stardust-glyph path {
+    stroke: var(--stardust-edge);
+    stroke-width: 0.6;
   }
 
-  [data-cursor-state='playful'] .custom-cursor__follower-inner {
-    transform: scale(1.4) rotate(8deg);
-    border-style: dashed;
-    border-color: var(--nimbus-cursor-star);
+  /* ---- Interaction states ---- */
+
+  /* Links & buttons: a slightly larger, brighter sparkle */
+  .stardust-root[data-cursor-state='attract'] .stardust-inner {
+    transform: scale(1.35) rotate(12deg);
   }
 
-  .custom-cursor__label {
+  .stardust-root[data-cursor-state='attract'] .stardust-glyph {
+    color: var(--stardust-core-2);
+  }
+
+  /* Cards & generic hover: only a gentle glow, no big size jump */
+  .stardust-root[data-cursor-state='hover'] .stardust-inner,
+  .stardust-root[data-cursor-state='card'] .stardust-inner {
+    transform: scale(1.12);
+  }
+
+  .stardust-root[data-cursor-state='hover'] .stardust-glyph,
+  .stardust-root[data-cursor-state='card'] .stardust-glyph {
+    filter:
+      drop-shadow(0 0 4px var(--stardust-glow))
+      drop-shadow(0 0 12px var(--stardust-glow));
+  }
+
+  /* Playful cards (project toys, Nimbus): a touch more sparkle + glow */
+  .stardust-root[data-cursor-state='playful'] .stardust-inner {
+    transform: scale(1.2) rotate(18deg);
+  }
+
+  .stardust-root[data-cursor-state='playful'] .stardust-glyph {
+    color: var(--stardust-core-2);
+    filter:
+      drop-shadow(0 0 5px var(--stardust-glow))
+      drop-shadow(0 0 14px var(--stardust-glow));
+  }
+
+  /* Text fields + active selection: hide the star so it never covers text */
+  .stardust-root[data-cursor-state='text'] .stardust-inner {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+
+  /* Click feedback: a quick squish-and-pop */
+  .stardust-root.is-press .stardust-inner {
+    animation: stardust-press 0.36s var(--nimbus-ease-spring);
+  }
+
+  @keyframes stardust-press {
+    0% { transform: scale(0.8); }
+    55% { transform: scale(1.08); }
+    100% { transform: scale(1); }
+  }
+
+  /* Tiny contextual label (project names, "Poke Nimbus!", "Secret…") */
+  .stardust-label {
     position: absolute;
-    bottom: 100%;
     left: 50%;
-    transform: translate(-50%, -6px) scale(0.6);
+    bottom: 100%;
+    transform: translate(-50%, 2px) scale(0.85);
     transform-origin: center bottom;
-    font-size: 10px;
     font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
     font-weight: 600;
-    letter-spacing: 0.03em;
-    background: var(--nimbus-accent);
-    color: #fff;
-    padding: 4px 9px;
-    border-radius: 999px;
+    letter-spacing: 0.06em;
     white-space: nowrap;
+    padding: 3px 7px;
+    border-radius: 999px;
+    background: rgba(11, 10, 20, 0.82);
+    color: #ffeaa7;
+    border: 1px solid var(--stardust-glow);
     opacity: 0;
     pointer-events: none;
-    transition:
-      opacity 0.25s ease,
-      transform 0.3s var(--nimbus-ease-spring);
+    transition: opacity 0.2s ease, transform 0.25s var(--nimbus-ease-spring);
   }
 
-  [data-cursor-label='1'] .custom-cursor__label {
+  .stardust-root[data-cursor-label='1'] .stardust-label {
     opacity: 1;
-    transform: translate(-50%, -10px) scale(1);
+    transform: translate(-50%, -4px) scale(1);
   }
 
-  .cursor-particle {
+  /* Trail sparkles — fixed pool of four-point stars, reused forever */
+  .stardust-spark {
     position: fixed;
     top: 0;
     left: 0;
-    border-radius: 50%;
+    width: 8px;
+    height: 8px;
     pointer-events: none;
-    z-index: 10028;
     will-change: transform, opacity;
+    clip-path: polygon(
+      50% 0%, 60% 40%, 100% 50%, 60% 60%,
+      50% 100%, 40% 60%, 0% 50%, 40% 40%
+    );
   }
 
   /* Replace the native cursor ONLY where the custom cursor is active (fine pointers) */
@@ -258,6 +343,16 @@
     .has-custom-cursor,
     .has-custom-cursor * {
       cursor: none !important;
+    }
+
+    /* Restore the native text cursor over text fields and while selecting text */
+    .has-custom-cursor.cursor-native-text,
+    .has-custom-cursor.cursor-native-text * {
+      cursor: text !important;
+    }
+
+    .has-custom-cursor.cursor-native-text select {
+      cursor: default !important;
     }
   }
 
@@ -307,6 +402,13 @@
     background-color: var(--band-bg);
     color: var(--band-fg);
     transition: background-color 0.5s ease, color 0.5s ease;
+  }
+
+  /* Lift section content above the ambient cursor glow (z-index: 1) without
+     touching individual section components. */
+  .band > .shell {
+    position: relative;
+    z-index: 10;
   }
 
   .display {
@@ -466,5 +568,25 @@
   .tactile:hover,
   .tactile:active {
     transform: none;
+  }
+
+  /* Stardust cursor: no scale transitions and no trail when motion is reduced */
+  .stardust-star,
+  .stardust-inner,
+  .stardust-glyph,
+  .stardust-label {
+    transition: none !important;
+  }
+
+  .stardust-root.is-press .stardust-inner {
+    animation: none !important;
+  }
+
+  .stardust-spark {
+    display: none !important;
+  }
+
+  .stardust-glow {
+    display: none !important;
   }
 }

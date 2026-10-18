@@ -4,7 +4,6 @@ import { useGSAP } from '@gsap/react';
 import { useSoundFX } from './hooks/useSoundFX';
 import { useScrollReveal } from './hooks/useScrollReveal';
 import { ScrollTrigger } from './lib/anim';
-import SparkleTrail from './components/SparkleTrail';
 import RetroHeader from './components/RetroHeader';
 import CustomCursor from './components/CustomCursor';
 import IntroOverlay from './components/IntroOverlay';
@@ -104,11 +103,8 @@ export default function App() {
       <ScrollProgress />
       <div className="grain-layer" aria-hidden="true" />
 
-      {/* Sparkle Cursor Trail (Side Quest +2 pts) */}
-      <SparkleTrail active={sparkTrailActive} />
-
-      {/* Nimbus custom character cursor */}
-      <CustomCursor active />
+      {/* Nimbus stardust character cursor + sparkle trail (single system) */}
+      <CustomCursor active trail={sparkTrailActive} />
 
       {/* Global Retro Header & Controls */}
       <RetroHeader

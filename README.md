@@ -22,6 +22,7 @@ with the Web Audio API.
 - [Project structure](#project-structure)
 - [Art direction & design system](#art-direction--design-system)
 - [Motion & scroll architecture](#motion--scroll-architecture)
+- [The Stardust cursor](#the-stardust-cursor)
 - [The Slumber Crib Dreambook (guestbook)](#the-slumber-crib-dreambook-guestbook)
 - [Day / night theming](#day--night-theming)
 - [Sound design](#sound-design)
@@ -52,7 +53,9 @@ Plus persistent, site-wide flavour:
 - A short, skippable **page-load intro overlay**.
 - A **retro sticky header** with nav, a visitor odometer, day/night toggle, and a mute toggle.
 - A **scroll-progress ribbon** and a **film-grain** atmosphere layer.
-- A **sparkle cursor trail** and a fully custom Nimbus **character cursor**.
+- A **stardust cursor** — a champagne four-point star with a soft blush glow,
+  a light trail of pink/cream/gold sparkles, and an ambient radial glow that
+  drifts across the background (see below).
 - A hidden **easter egg**.
 
 ---
@@ -148,8 +151,7 @@ npm run preview
         ├── StarField.jsx      # seeded canvas starfield
         ├── IntroOverlay.jsx   # skippable page-load intro
         ├── ScrollProgress.jsx # top progress ribbon
-        ├── SparkleTrail.jsx   # pointer sparkle particles
-        ├── CustomCursor.jsx   # Nimbus character cursor
+        ├── CustomCursor.jsx   # Stardust cursor: star + trail + ambient glow
         ├── HoverTilt.jsx      # pointer-based 3D tilt wrapper
         ├── EasterEggModal.jsx # hidden surprise
         └── reactbits/         # vendored open-source React Bits components
@@ -248,6 +250,36 @@ avatar travels a key-framed path across the three scenes.
 Because web-fonts reflow layout *after* triggers are created, `App.jsx` calls
 `ScrollTrigger.refresh()` on `document.fonts.ready`, on `window.load`, and once
 more shortly after the intro overlay releases the scroll lock.
+
+---
+
+## The Stardust cursor
+
+The pointer is a single, self-contained system in `src/components/CustomCursor.jsx`
+(it also owns the sparkle trail, so there is no second cursor layer):
+
+- A **champagne-gold four-point star** (30px) with a soft **blush-pink glow**,
+  tuned via `--stardust-*` tokens so it reads on both cream and night bands.
+- A light trail of **pink / cream / gold sparkles** drifting up and fading,
+  spawn-rate rising with pointer speed.
+- A soft **ambient radial glow** that drifts across the background behind the
+  content (`z-index: 1`; section shells sit at `z-index: 10`). It reads the
+  backdrop under the pointer (`elementFromPoint` → luminance) and swaps between
+  a **cream-day** and a **lavender-night** gradient automatically.
+- **States** driven by `data-cursor-state` (no React re-renders on mousemove):
+  `attract` on links/buttons (larger sparkle), `playful` on interactive cards
+  (subtle glow + a tiny contextual label), `hover`/`card` (gentle glow), and
+  `text` — which hides the star and restores the **native text cursor** over
+  fields and while selecting text.
+- Everything is driven by a **single `requestAnimationFrame` loop** using
+  frame-rate-independent exponential smoothing (star ≈ 75 ms, glow ≈ 170 ms) —
+  the star eases toward the pointer rather than snapping. The trail comes from a
+  **fixed 46-node pool** (never grows), and all layers are `pointer-events: none`
+  so clicks, links, selection, and focus are unaffected. A quick squish-and-pop
+  animation fires on click.
+- **Disabled on touch** (coarse pointers) and trimmed under **reduced motion**
+  (no trail, no burst, no glow, instant follow). The header's "Sparkles" button
+  toggles the trail live.
 
 ---
 
